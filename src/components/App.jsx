@@ -4,23 +4,17 @@ import { ContactForm } from "./ContactForm/ContactForm";
 import { ContactList } from "./ContactList/ContactList";
 import { Filter } from "./Filter/Filter";
 import { useDispatch } from "react-redux";
-import { loadContacts } from "../redux/contactsSlice";
+
 import { useSelector } from "react-redux";
-
+import { fetchContacts } from "../redux/operations";
+import {  selectError, selectIsLoading } from "../redux/selectors";
 export const App = () => {
-  const contacts = useSelector((state) => state.contacts);
   const dispatch = useDispatch();
-
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
   useEffect(() => {
-    const savedContacts = JSON.parse(localStorage.getItem("contacts"));
-    if (savedContacts) {
-      dispatch(loadContacts(savedContacts));
-    }
+    dispatch(fetchContacts());
   }, [dispatch]);
-
-  useEffect(() => {
-    localStorage.setItem("contacts", JSON.stringify(contacts));
-  }, [contacts]);
 
   return (
     <div className={css.container}>
@@ -28,6 +22,7 @@ export const App = () => {
       <ContactForm />
       <h2>Contacts</h2>
       <Filter />
+      {isLoading && !error && <b>Request in progress...</b>}
       <ContactList />
     </div>
   );
