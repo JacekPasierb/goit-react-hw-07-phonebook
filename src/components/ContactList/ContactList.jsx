@@ -2,33 +2,39 @@ import css from "./ContactListStyle.module.css";
 import { useDispatch } from "react-redux";
 
 import { useSelector } from "react-redux";
-import { selectContacts } from "../../redux/selectors";
-import { deleteContact } from "../../redux/operations";
+import {
+  selectError,
+  selectFilteredContacts,
+  selectIsLoading,
+} from "../../redux/selectors";
+import { deleteContact, fetchContacts } from "../../redux/operations";
+import { useEffect } from "react";
 
 export const ContactList = () => {
   const dispatch = useDispatch();
-  const contacts = useSelector(selectContacts);
-  const filters = useSelector((state) => state.filters);
-  
- 
-  const filteredContacts = contacts.filter((contact) => {
-    return contact.name.toLowerCase().includes(filters.toLowerCase());
-  });
-  
+  const filteredContacts = useSelector(selectFilteredContacts);
+  const isLoading = useSelector(selectIsLoading);
+  const error = useSelector(selectError);
+  useEffect(() => {
+    dispatch(fetchContacts());
+  }, [dispatch]);
   return (
     <>
       <ul>
-        {filteredContacts.map((contact) => (
-          <li className={css.contactItem} key={contact.id}>
-            {contact.name}: {contact.number}
-            <button
-              type="submit"
-              onClick={()=>dispatch(deleteContact(contact.id))}
-            >
-              Delete
-            </button>
-          </li>
-        ))}
+        {isLoading && !error ? (
+          <p>Contacts loading...</p>
+        ) : filteredContacts.length === 0 && !error ? (
+          <p>The Phonebook is empty. Add your first contact. </p>
+        ) : (
+          filteredContacts.map(({ id, name, number }) => (
+            <li className={css.contactItem} key={id}>
+              {name}: {number}
+              <button type="submit" onClick={() => dispatch(deleteContact(id))}>
+                Delete
+              </button>
+            </li>
+          ))
+        )}
       </ul>
     </>
   );
